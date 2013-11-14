@@ -19,7 +19,7 @@ public class Fusion {
 
     public static final boolean ENABLED_DOUBLE = false;
 
-    public static final boolean ENABLE_STATISTICS = true;
+    public static final boolean ENABLE_STATISTICS = false;
 
     public static final boolean VERIFY = false;
 
@@ -103,6 +103,7 @@ public class Fusion {
         if (ENABLE_STATISTICS) {
             ++materialize;
             totSize += view.size();
+            //System.out.println(view.size());
         }
         FusedOperator.Prototype fusedOperator = view.boundFusedOperator();
         if (fusedOperator == null) {

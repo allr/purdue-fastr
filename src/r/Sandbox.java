@@ -7,6 +7,8 @@ import r.fusion.Fusion;
 import r.nodes.ast.ASTNode;
 import r.shootout.ShootoutTestBase;
 
+import java.util.Vector;
+
 //import java.util.Vector;
 
 //import static r.shootout.ShootoutTestBase.generateFastaOutput;
@@ -448,6 +450,8 @@ public class Sandbox {
         //System.err.println("Stddev (rel): " + (stddev / avg));
         //System.err.println("OVERALL:      " + (avg - stddev) + " -- " + (avg + stddev));
         //System.err.println(Fusion.statistics());
+        mean.add(avg);
+        sd.add(stddev);
     }
 
 
@@ -460,11 +464,50 @@ public class Sandbox {
         //benchmark("mandelbrot_noout_naive(5100L)", 10, 3);
     }
 
-    public static void testRun() {
-        ASTNode tree = RContext.parseFile(new ANTLRStringStream("{ c(NA,NA,NA)+c(1L,2L,3L) }"));
-        RAny result = RContext.eval(tree);
-        System.out.println(result.pretty());
+    static String simpleCode2 = "" +
+            "a <- function(size) {\n" +
+            "  x = rep(1, size)\n" +
+            "  y = rep(1, size)\n" +
+            "  z = rep(1, size)\n" +
+            "  for (i in 1:10000) {\n" +
+            "    x = y + z * z + y - 2 * (8 + z)\n" +
+            "    y = x + z * x * 4 - 2\n" +
+            "    z = x + y\n" +
+            "  }\n" +
+            "  z\n" +
+            "}";
 
+    static String simpleCode3 ="" +
+            "a <- function(size) {\n" +
+            "  x = rep(1, size)\n" +
+            "  y = rep(1, size)\n" +
+            "  z = rep(1, size)\n" +
+            "  w = rep(1, size)\n" +
+            "  for (i in 1:10000) {\n" +
+            "    x = y + z * y + z - 2 * (8 + z)\n" +
+            "    x[[1]] = 3" +
+            "  }\n" +
+            "  z\n" +
+            "}";
+
+    static Vector<Double> mean = new Vector<>();
+    static Vector<Double> sd = new Vector<>();
+
+    public static void testRun() {
+        ASTNode tree = RContext.parseFile(new ANTLRStringStream(simpleCode2));
+        RAny result = RContext.eval(tree);
+        for (int i : new int[] { 10, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500, 8000, 8500, 9000, 9500, 10000, 10500, 11000})
+        //for (int i : new int[] { 10000})
+            benchmark("Size: "+i, "a("+i+")", 5, 3);
+
+        System.out.print("mean ");
+        for (double d: mean)
+            System.out.print(d+", ");
+        System.out.println("");
+        System.out.print("sd ");
+        for (double d: sd)
+            System.out.print(d+", ");
+        System.out.println("");
     }
 
     public static void runTests() {
@@ -477,8 +520,8 @@ public class Sandbox {
         benchmark("mandelbrot-noout-naive", "mandelbrot_noout_naive(5100L)", 20, 3); */
         ASTNode tree = RContext.parseFile(new ANTLRStringStream(spectralnorm_alt2));
         RContext.eval(tree);
-        for (int i : new int[] { 5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120}) {
-            benchmark("spectralnorm-alt2:"+i, "spectralnorm_alt2("+i+"L)", 1, 3);
+        for (int i : new int[] { 8000, 8500, 9000, 9500, 10000}) {
+            benchmark("spectralnorm-alt2:"+i, "spectralnorm_alt2("+i+"L)", 5, 2);
         }
 
 /*        benchmark("spectralnorm-alt2", "spectralnorm_alt2(10L)", 20, 3);
@@ -506,10 +549,10 @@ public class Sandbox {
 
     public static void main(String[] args) {
         //System.e.println("Executing sandbox...\nFUSION ON");
-        runTests();
+        //runTests();
 
         //debugRun();
-        //testRun();
+        testRun();
 
     }
 }
