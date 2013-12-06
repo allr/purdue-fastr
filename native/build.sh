@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# This script is for Ubuntu 12.10 (now 13.04), 64-bit and JDK 1.7
+# This script is for Ubuntu 13.10, 64-bit and JDK 1.7 (or 1.8)
 # it builds the wrappers for R library and libc
 #
 # (not for BLAS/LAPACK, see netlib-java for that)
@@ -9,20 +9,24 @@
 
 JDK=$JAVA_HOME
 
-gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall -Wno-unused -Wno-parentheses \
+gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall -Wno-unused -Wno-parentheses -Wno-unused-parameter \
   -I $JDK/include/ -I $JDK/include/linux/ -I /usr/share/R/include -I. \
   -c r_ext_GNUR.c r_ext_SystemLibs.c
+
+gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall -Wno-unused -Wno-parentheses -Wno-unused-parameter \
+  -I /usr/share/R/include -I. \
+  -c gnur/src/library/stats/src/fft.c -o gnur/src/library/stats/src/fft.o
   
 gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses \
   -Wl,-soname=libgnurglue.so -static-libgcc \
-  -shared -o libgnurglue.so r_ext_GNUR.o \
+  -shared -o libgnurglue.so r_ext_GNUR.o gnur/src/library/stats/src/fft.o \
   -lRmath -lR -lc
 
-# FIXME: are is the R library needed here?
+# FIXME: is the R library needed here?
 gcc -O3 -msse4 -fno-strict-aliasing -fPIC -fno-omit-frame-pointer -W -Wall  -Wno-unused -Wno-parentheses \
   -Wl,-soname=libgnurglue.so -static-libgcc \
   -shared -o libsystemlibsglue.so r_ext_SystemLibs.o \
-  -lRmath -lR -lc
+   -lRmath -lR -lc
   
 if [ -n "$MKLROOT" ] ; then  
   echo "Building MKL glue: yes" >&2 

@@ -229,6 +229,16 @@ JNIEXPORT jboolean JNICALL Java_r_ext_GNUR_rcauchy
 
 // appl =================================================================================================
 
+// these two functions used to be part of appl, and listed in the R headers,
+// but they no longer are since R 3.x (Ubuntu 13.10); the source is copied
+// into the fastr tree (gnur directory)
+
+void fft_factor(int n, int *pmaxf, int *pmaxp);
+Rboolean fft_work(double *a, double *b, int nseg, int n, int nspn,
+                  int isn, double *work, int *iwork);
+                  
+
+
 JNIEXPORT void JNICALL Java_r_ext_GNUR_fft_1factor
   (JNIEnv *jenv, jclass jcls, jint n, jintArray maxfArg, jintArray maxpArg) {
 

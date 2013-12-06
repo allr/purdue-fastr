@@ -1,6 +1,6 @@
 #! /bin/bash
 
-# for Ubuntu 13.04 and JDK 1.7
+# for Ubuntu 13.04 and JDK 1.7 (also Ubuntu 13.10, also JDK 1.8)
 
 # This version of netlib-java includes several fixes needed to build and run
 # on recent versions of Ubuntu.  Also the generated JNI wrappers can pass

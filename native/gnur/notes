@@ -1,0 +1,4 @@
+
+This directory includes source code copied from GNU-R, for the routines that
+cannot be re-used by linking against the R library or R Math library.
+
