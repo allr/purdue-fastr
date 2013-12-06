@@ -14,6 +14,7 @@ public class SystemLibs {
     public static native boolean fmod(double[] x, double[] y, double[] res, int size);
 
     public static native double exp(double x);
+    public static native void exp(double[] x, double[] res, int size);
 
     static {
         System.loadLibrary(RContext.SYSTEM_LIBS_LIBRARY_NAME);

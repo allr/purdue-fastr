@@ -124,4 +124,18 @@ JNIEXPORT jdouble JNICALL Java_r_ext_SystemLibs_exp
   
   return exp(x);
 }
+
+JNIEXPORT void JNICALL Java_r_ext_SystemLibs_exp___3D_3DI
+  (JNIEnv *jenv, jclass jcls, jdoubleArray xArg, jdoubleArray resArg, jint size) {
   
+  double *x = (*jenv)->GetPrimitiveArrayCritical(jenv, xArg, 0);
+  double *res = (*jenv)->GetPrimitiveArrayCritical(jenv, resArg, 0);
+  int i;
+
+  for (i = 0; i < size; i++) {
+    res[i] = exp(x[i]);  // FIXME: equivalent to R wrt to NA/NaN?
+  }
+   
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, xArg, x, 0);
+  (*jenv)->ReleasePrimitiveArrayCritical(jenv, resArg, res, 0);
+}  

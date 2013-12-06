@@ -52,8 +52,16 @@ JNIEXPORT jboolean JNICALL Java_r_ext_SystemLibs_fmod
  * Method:    exp
  * Signature: (D)D
  */
-JNIEXPORT jdouble JNICALL Java_r_ext_SystemLibs_exp
+JNIEXPORT jdouble JNICALL Java_r_ext_SystemLibs_exp__D
   (JNIEnv *, jclass, jdouble);
+
+/*
+ * Class:     r_ext_SystemLibs
+ * Method:    exp
+ * Signature: ([D[DI)V
+ */
+JNIEXPORT void JNICALL Java_r_ext_SystemLibs_exp___3D_3DI
+  (JNIEnv *, jclass, jdoubleArray, jdoubleArray, jint);
 
 #ifdef __cplusplus
 }

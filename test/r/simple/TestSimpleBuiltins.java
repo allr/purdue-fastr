@@ -547,8 +547,9 @@ public class TestSimpleBuiltins extends SimpleTestBase {
 
         assertEval("{ sqrt(c(a=9,b=81)) }", "  a   b\n3.0 9.0");
 
-        assertEval("{ round( exp(c(1+1i,-2-3i)), digits=5 ) }", "1.46869+2.28736i, -0.13398-0.0191i");
-        assertEval("{ round( exp(1+2i), digits=5 ) }", "-1.1312+2.47173i");
+        // complex exp now not supported
+//        assertEval("{ round( exp(c(1+1i,-2-3i)), digits=5 ) }", "1.46869+2.28736i, -0.13398-0.0191i");
+//        assertEval("{ round( exp(1+2i), digits=5 ) }", "-1.1312+2.47173i");
 
         assertEval("{ abs((-1-0i)/(0+0i)) }", "Infinity");
         assertEval("{ abs((-0-1i)/(0+0i)) }", "Infinity");
