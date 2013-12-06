@@ -6,6 +6,8 @@ public interface ProfilingView {
 
     public static final boolean DEBUG_PROFILING = false;
 
+    public static final boolean ALWAYS_EAGER = false; // for testing, but beware of use-sites that have not been updated for profiling views
+
     public static class ViewProfile {
             // static info
         int size;
@@ -112,6 +114,7 @@ public interface ProfilingView {
         }
 
         private boolean shouldBeLazyReal() {
+            if (ALWAYS_EAGER) return false;
             if (!created) {
                 if (DEBUG_PROFILING) {
                     System.err.println("MISSED VIEW in PROFILING (profilingView " + this + ")");
@@ -137,6 +140,9 @@ public interface ProfilingView {
                 return false;
             }
             if (externalGetCount > size) {
+                return false;
+            }
+            if (internalGetCount > size) { // FIXME: does this pay off?
                 return false;
             }
             return true;
