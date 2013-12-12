@@ -119,6 +119,8 @@ public abstract class View extends ArrayImpl implements RArray {
 
         public void visit(Arithmetic.IntViewForIntInt view) { visit( (View) view); }
         public void visit(Arithmetic.IntViewForIntInt.EqualSize view) { visit( (Arithmetic.IntViewForIntInt) view); }
+        
+        public void visit(Arithmetic.IntViewForIntInt.VectorScalar view){visit((Arithmetic.IntViewForIntInt) view);}
 
         /** Profiling views are in separate hierarchy.
          *

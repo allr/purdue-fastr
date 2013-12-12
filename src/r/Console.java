@@ -13,6 +13,7 @@ import org.netlib.lapack.*;
 import r.data.*;
 import r.data.internal.*;
 import r.errors.*;
+import r.fusion.*;
 import r.nodes.ast.*;
 import r.nodes.tools.*;
 import r.parser.*;
@@ -158,6 +159,7 @@ public class Console {
         if (TracingView.VIEW_TRACING) {
             TracingView.ViewTrace.printGlobalStats();
         }
+        System.out.println(Fusion.statistics());
     }
 
     interface RLineReader {
