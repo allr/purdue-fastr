@@ -2,7 +2,7 @@ package r.fusion;
 
 import r.data.*;
 import r.data.internal.*;
-import r.nodes.exec.Arithmetic;
+import r.nodes.exec.*;
 
 /**
  * Hash computation for the view. Each characteristic of the view has a random number assigned to it. When the tree is
@@ -29,18 +29,19 @@ public class Hash extends View.Visitor {
         if (view instanceof ProfilingView) return 0;
         h = 0;
         i = 0;
+        int hashValue = 0;
         try {
             view.visit(this);
-            if (h != 0) {
-                System.out.println("Worked for " + view.getClass());
-            } else {
-                System.out.println("Failed for " + view.getClass());
-            }
-            return h;
+            hashValue = h;
         } catch (NotSupported e) {
-            System.out.println("Exception Failed for " + view.getClass());
-            return 0;
+            //e.printStackTrace();            
+            hashValue = 0;
         }
+        if (hashValue == 0) {
+           //System.out.println("Hash Failed for class " + view.getClass());
+           
+        }
+        return hashValue;
     }
 
     @Override public void visitLeaf(RAny element) {
@@ -49,7 +50,7 @@ public class Hash extends View.Visitor {
     }
 
     @Override public void visit(View view) {
-        System.out.println("Exception Failed for " + view.getClass());
+        //System.out.println("Exception Failed for " + view.getClass());
         //assert (false);
         throw new NotSupported();
     }
