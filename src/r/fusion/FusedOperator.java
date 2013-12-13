@@ -7,6 +7,7 @@ import r.data.*;
 import r.data.internal.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
+import r.nodes.exec.UnaryMinus;
 
 /**
  * The Fast and more complete fused operator class generator and prototype.
@@ -76,7 +77,7 @@ public class FusedOperator extends View.Visitor {
          */
         @Override public void visit(View view) {
             this.visit(view);
-            System.out.println("FusedOperator Failed for " + view.getClass());
+            //System.out.println("FusedOperator Failed for " + view.getClass());
             assert (false);
             throw new NotSupported();
         }
@@ -127,7 +128,12 @@ public class FusedOperator extends View.Visitor {
             visitDouble_(view.value);
             // TODO deal with names attributes and dimnames
         }
-        
+
+        @Override public void visit(UnaryMinus.GenericMinusInt view) {
+            checkClass(view.getClass());
+            visitInt_(view.orig);
+        }
+
         @Override public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
@@ -505,7 +511,7 @@ public class FusedOperator extends View.Visitor {
             cc = pool.get("java.lang.Class[]");
         } catch (NotFoundException e) {
             if (Fusion.DEBUG) e.printStackTrace();
-            System.err.println("Initialization of Fusion framework failed, exitting...");
+            //System.err.println("Initialization of Fusion framework failed, exitting...");
             System.exit(-1);
         }
         prototype = p;
@@ -674,7 +680,7 @@ public class FusedOperator extends View.Visitor {
         sbis.append("            throw new r.fusion.NotSupported();\n");
         sbis.append("    }\n");
         sbis.append("}\n");
-        //        System.out.println(sbd.toString());
+        //System.out.println(sbd.toString());
         fop.addMethod(CtNewMethod.make(sbd.toString(), fop));
         fop.addMethod(CtNewMethod.make(sbi.toString(), fop));
         fop.addMethod(CtNewMethod.make(sbis.toString(), fop));
@@ -833,8 +839,8 @@ public class FusedOperator extends View.Visitor {
         try {
             fop.addMethod(CtNewMethod.make(sb.toString(), fop));
         } catch (Exception e) {
-            System.out.println(this);
-            System.out.println(sb.toString());
+            //System.out.println(this);
+            //System.out.println(sb.toString());
             e.printStackTrace();
             throw e;
         }
@@ -946,6 +952,13 @@ public class FusedOperator extends View.Visitor {
         }
     }
 
+    private void applyUnaryMinusInt(String source) {
+        resultVar = freeTemp();
+        resultType = Fusion.INT;
+        code.append("        int " + resultVar + ";\n");
+        code.append("        " + resultVar + " = -" + source + ";\n");
+    }
+
     // node visitor implementation -------------------------------------------------------------------------------------
 
     /**
@@ -1021,6 +1034,13 @@ public class FusedOperator extends View.Visitor {
         conversionToDouble(resultVar, resultType);
     }
 
+    @Override public void visit(UnaryMinus.GenericMinusInt view) {
+        checkClass(view.getClass());
+        inputIsVector = true;
+        visitInt_(view.orig);
+        applyUnaryMinusInt(resultVar);
+    }
+
     @Override public void visit(RInt.RIntSubset view) {
         checkClass(view.getClass());
         inputIsVector = true;
@@ -1034,7 +1054,7 @@ public class FusedOperator extends View.Visitor {
         resultSize = rs;
         // TODO deal with attributes, names, etc.
     }
-    
+
     @Override public void visit(RDouble.RDoubleSubset view) {
         checkClass(view.getClass());
         inputIsVector = true;

@@ -6,6 +6,7 @@ import r.data.*;
 import r.fusion.*;
 import r.nodes.ast.*;
 import r.nodes.exec.*;
+import r.nodes.exec.UnaryMinus;
 
 // FIXME: the Impl classes for data types should also inherit from View.*, reducing code duplication
 
@@ -124,7 +125,9 @@ public abstract class View extends ArrayImpl implements RArray {
         
         public void visit(Arithmetic.IntViewForIntInt.VectorScalar view){visit((Arithmetic.IntViewForIntInt) view);}
         
-      
+        public void visit(UnaryMinus.GenericMinusInt view) {
+            visit( (View) view); 
+        }
 
         /** Profiling views are in separate hierarchy.
          *

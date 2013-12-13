@@ -1,9 +1,9 @@
 package r.fusion;
 
-import r.data.*;
-import r.data.internal.View;
-
 import java.util.*;
+
+import r.data.*;
+import r.data.internal.*;
 
 /**
  * Fusion manager for the views.
@@ -45,7 +45,9 @@ public class Fusion {
     static final int CONVERSION = -1803245152;
     static final int SUBSET = -1649474957;
     static final int INT_SEQUENCE = INT + SEQUENCE;
-
+    
+    static final int UNARY = 574899439;
+   
     /**
      * HashMap containing created fusion operators and their respective view signatures.
      */
