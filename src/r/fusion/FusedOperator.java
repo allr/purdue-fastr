@@ -1,12 +1,12 @@
 package r.fusion;
 
+import java.util.*;
+
 import javassist.*;
 import r.data.*;
 import r.data.internal.*;
-import r.nodes.ast.ASTNode;
-import r.nodes.exec.Arithmetic;
-
-import java.util.*;
+import r.nodes.ast.*;
+import r.nodes.exec.*;
 
 /**
  * The Fast and more complete fused operator class generator and prototype.
@@ -121,6 +121,13 @@ public class FusedOperator extends View.Visitor {
             // TODO deal with names attributes and dimnames
         }
 
+        @Override public void visit(RDouble.RDoubleSubset view) {
+            checkClass(view.getClass());
+            visitInt_(view.index);
+            visitDouble_(view.value);
+            // TODO deal with names attributes and dimnames
+        }
+        
         @Override public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
             checkClass(view.getClass());
             checkClass(view.arit.getClass());
@@ -1024,6 +1031,20 @@ public class FusedOperator extends View.Visitor {
         inputIsVector = true;
         isResultSize = false;
         visitInt_(view.base);
+        resultSize = rs;
+        // TODO deal with attributes, names, etc.
+    }
+    
+    @Override public void visit(RDouble.RDoubleSubset view) {
+        checkClass(view.getClass());
+        inputIsVector = true;
+        visitInt_(view.index);
+        int rs = resultSize;
+        String oldSubsetIndex = subsetIndex;
+        subsetIndex = resultVar;
+        inputIsVector = true;
+        isResultSize = false;
+        visitDouble_(view.value);
         resultSize = rs;
         // TODO deal with attributes, names, etc.
     }

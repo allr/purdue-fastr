@@ -41,13 +41,13 @@ public class Hash extends View.Visitor {
     }
 
     @Override public void visitLeaf(RAny element) {
-        System.out.println("Hash Failed for leaf " + element.pretty());
+        //System.out.println("Hash Failed for leaf " + element.pretty());
         //assert (false);
         throw new NotSupported();
     }
 
     @Override public void visit(View view) {
-        System.out.println("Hash Failed for class " + view.getClass());        
+        System.out.println("Hash Failed for View " + view.getClass());        
         //assert (false);
         throw new NotSupported();
     }
@@ -98,6 +98,13 @@ public class Hash extends View.Visitor {
         visitInt_(view.index);
     }
 
+
+    @Override public void visit(RDouble.RDoubleSubset view) { 
+        addHash(Fusion.SUBSET + Fusion.DOUBLE + Fusion.DOUBLE);
+        visitDouble_(view.value);
+        visitInt_(view.index);
+    }
+    
     @Override public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) {
         addHash(Fusion.BINARY + operatorToInt(view.arit) + Fusion.VECTOR + Fusion.DOUBLE + Fusion.A + Fusion.VECTOR + Fusion.VECTOR);
         visitDouble_(view.a);
@@ -157,4 +164,6 @@ public class Hash extends View.Visitor {
         visitInt_(view.a);
         visitInt_(view.b);
     }
+    
+   
 }

@@ -3,9 +3,9 @@ package r.data;
 import java.util.*;
 
 import r.*;
-import r.Convert.*;
+import r.Convert.ConversionStatus;
 import r.data.internal.*;
-import r.fusion.Fusion;
+import r.fusion.*;
 
 public interface RDouble extends RNumber {
 
@@ -528,9 +528,9 @@ public interface RDouble extends RNumber {
     //   but can be out of bounds ==> NA's are returned in that case
     public static class RDoubleSubset extends View.RDoubleView implements RDouble {
 
-        final RDouble value;
+        public final RDouble value;
         final int vsize;
-        final RInt index;
+        public final RInt index;
         final int isize;
 
         public RDoubleSubset(RDouble value, RInt index) {
@@ -581,6 +581,13 @@ public interface RDouble extends RNumber {
         @Override
         public void accept(ValueVisitor v) {
             v.visit(this);
+        }
+        
+        /**
+         * FUSION Calls the visitor on the current view (type-dispatch).
+         */
+        @Override public void visit(View.Visitor visitor) {
+            visitor.visit(this);
         }
     }
 }

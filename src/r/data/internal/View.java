@@ -1,7 +1,7 @@
 package r.data.internal;
 
-import r.*;
 import r.Convert.ConversionStatus;
+import r.*;
 import r.data.*;
 import r.fusion.*;
 import r.nodes.ast.*;
@@ -102,6 +102,8 @@ public abstract class View extends ArrayImpl implements RArray {
         public void visit(RInt.RDoubleView view) { visit( (View) view); }
 
         public void visit(RInt.RIntSubset view) { visit( (View) view); }
+        
+        public void visit(RDouble.RDoubleSubset view) { visit( (View) view); }
 
         public void visit(Arithmetic.DoubleViewForDoubleDouble view) { visit( (View) view); }
         public void visit(Arithmetic.DoubleViewForDoubleDouble.GenericASized view) { visit( (Arithmetic.DoubleViewForDoubleDouble) view); }
@@ -121,6 +123,8 @@ public abstract class View extends ArrayImpl implements RArray {
         public void visit(Arithmetic.IntViewForIntInt.EqualSize view) { visit( (Arithmetic.IntViewForIntInt) view); }
         
         public void visit(Arithmetic.IntViewForIntInt.VectorScalar view){visit((Arithmetic.IntViewForIntInt) view);}
+        
+      
 
         /** Profiling views are in separate hierarchy.
          *
