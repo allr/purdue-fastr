@@ -13,7 +13,7 @@ public interface TracingView {
     public static final boolean SILENT = false; // good for JUnit tests
 
     public static final boolean PRINT_INDIVIDUAL_VIEWS = false;
-    public static final boolean PRINT_VIEW_PATTERNS = true;
+    public static final boolean PRINT_VIEW_PATTERNS = false;
 
     public static final boolean TRACE_USE_SITES = false;
     public static final boolean TRACE_SINGLE_USE_SITE = false;

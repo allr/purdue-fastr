@@ -92,6 +92,7 @@ public class Arithmetic extends BaseR {
                 if (DEBUG_AR) Utils.debug("Installed " + sc.dbg + " for expressions " + lexpr + "(" + ((RAny) lexpr).pretty() + ") and " + rexpr + "(" + ((RAny) rexpr).pretty() + ")");
                 return sc.execute(lexpr, rexpr);
             } else {
+                assert Utils.check(vectorArit == null);
                 Specialized sn = Specialized.createSpecialized((RAny) lexpr, (RAny) rexpr, ast, left, right, arit);
                 replace(sn, "install Specialized from Uninitialized");
                 if (DEBUG_AR) Utils.debug("Installed " + sn.dbg);
