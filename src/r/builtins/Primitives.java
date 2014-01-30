@@ -141,6 +141,7 @@ public class Primitives {
         add(Ncol._);
         add(Newenv._);
         add(Nrow._);
+        add("numeric", Double._);
         add(Options._);
         add(Order._);
         add(Outer._);
@@ -157,6 +158,7 @@ public class Primitives {
         add(Rcauchy._);
         add(Re._);
         add(ReadLines._);
+        add("real", Double._);
         add(Recall._);
         add(Regexpr._);
         add(Rep._);
