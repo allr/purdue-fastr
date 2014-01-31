@@ -24,16 +24,16 @@ only on Unix, as they spawn the `cat` process.
 To run the benchmarks from the Benchmark 25 suite, and for best performance
 of all benchmarks, build native glue code which links FastR to the GNU-R
 Math Library, system Math library, and openBLAS.  The build scripts are
-tested on Ubuntu 13.10.  Any platform that supported by GNU-R and Java could
+tested on Ubuntu 13.10. Any platform supported by GNU-R and Java could
 be supported by FastR.
 
 1. install Oracle JDK8 (for best performance); if you must use JDK7, customize `native/netlib-java/build.sh`
 2. set `JAVA_HOME` and `PATH` accordingly
 3. follow the steps in Quick Start
 4. install Ubuntu packages `r-base`, `r-mathlib`, `libopenblas-base`
-5. build glue for system libraries and GNU-R: `cd native ; ./build.sh`
-6. build glue for native BLAS and LAPACK: `cd netlib-java ; ./build.sh` 
-7. check the glue libraries can be loaded: `cd ../.. ; ./nr.sh` should give output  
+5. build glue code for system libraries and GNU-R: `cd native ; ./build.sh`
+6. build glue code for native BLAS and LAPACK: `cd netlib-java ; ./build.sh` 
+7. check the glue code can be loaded: `cd ../.. ; ./nr.sh` should give output  
 `Using LAPACK: org.netlib.lapack.NativeLAPACK`  
 `Using BLAS: org.netlib.blas.NativeBLAS`  
 `Using GNUR: yes`  
