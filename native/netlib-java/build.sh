@@ -1,6 +1,7 @@
 #! /bin/bash
 
 # for Ubuntu 13.04 and JDK 1.7 (also Ubuntu 13.10, also JDK 1.8)
+# uncomment the correct invocation of javadoc if JDK 1.7 is used
 
 # This version of netlib-java includes several fixes needed to build and run
 # on recent versions of Ubuntu.  Also the generated JNI wrappers can pass
@@ -19,11 +20,15 @@ echo "Print enter to continue..."
 read DUMMY  
 
 
-#export JAVA_HOME=/opt/jdk7
-
 ant generate
 ant compile
-ant -Djavadoc.additionalparam="-Xdoclint:none"  package
+
+# Javadoc invocation for JDK 1.8
+ant -Djavadoc.additionalparam="-Xdoclint:none" package
+
+# Javadoc invocation for JDK 1.7
+#ant -Djavadoc.additionalparam="-Xdoclint:none" package
+
 cd jni
 bash ./configure
 make

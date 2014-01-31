@@ -13,15 +13,41 @@ the [Benchmark 25 suite](http://r.research.att.com/benchmarks/).
 4. run the console: `./r.sh`
 5. run the binarytrees benchmark for size 5: `./r.sh --args 5 -f test/r/shootout/binarytrees/binarytrees.r`
 
-## Requirements
+## Minimal Requirements
 
-FastR requires Java. By default, FastR uses Java implementations of LAPACK
-and BLAS.  Some of the mandelbrot shootout benchmarks will only run on Unix,
-because they spawn the `cat` process.  FastR needs to be linked against the
-GNU R implementation to be able to run the micro-benchmarks from the
-[Benchmark 25 suite](http://r.research.att.com/benchmarks/).  A build script
-for Linux/Ubuntu is available in the `native` directory.  The linking is not
-necessary for the Shootout benchmarks.
+To run the binarytrees benchmark as shown above, FastR requires Java. All
+Shootout benchmarks can be run this way, but some of the mandelbrot
+only on Unix, as they spawn the `cat` process. 
+
+## Full Installation
+
+To run the benchmarks from the Benchmark 25 suite, and for best performance
+of all benchmarks, build native glue code which links FastR to the GNU-R
+Math Library, system Math library, and openBLAS.  The build scripts are
+tested on Ubuntu 13.10.  Any platform that supported by GNU-R and Java could
+be supported by FastR.
+
+1. install Oracle JDK8 (for best performance); if you must use JDK7, customize `native/netlib-java/build.sh`
+2. set `JAVA_HOME` and `PATH` accordingly
+3. follow the steps in Quick Start
+4. install Ubuntu packages `r-base`, `r-mathlib`, `libopenblas-base`
+5. build glue for system libraries and GNU-R: `cd native ; ./build.sh`
+6. build glue for native BLAS and LAPACK: `cd netlib-java ; ./build.sh` 
+7. check the glue libraries can be loaded: `cd ../.. ; ./nr.sh` should give output  
+`Using LAPACK: org.netlib.lapack.NativeLAPACK`  
+`Using BLAS: org.netlib.blas.NativeBLAS`  
+`Using GNUR: yes`  
+`Using System libraries (C/M): yes`  
+`Using MKL: not available`  
+8. run the matfunc-1 benchmark: `./nr.sh -f test/r/benchmark25/perfres/b25-matfunc-1.r`
+
+To ensure that the openBLAS library is used, run the matcal-4 benchmark with
+the system profiler: 
+`perf record ./nr.sh -f test/r/benchmark25/perfres/b25-matcal-4.r`.
+
+Check with `perf report` that DGEMM from openBLAS is used, e.g. 
+`dgemm_kernel_SANDYBRIDGE` from `libopenblas.so.0`.  Also expect to see the
+random number generator, e.g.  `qnorm5` from `libRmath.so.1.0.0`.
 
 ## Running Tests
 
