@@ -1114,4 +1114,10 @@ public class TestSimpleVectors extends SimpleTestBase {
         assertEval("{ l <- quote(x[1] <- 1) ; f <- function() { eval(l) } ; x <- 10 ; f() ; x }", "10.0");
         assertEval("{ l <- quote(x[1] <- 1) ; f <- function() { eval(l) ; x <<- 10 ; get(\"x\") } ; x <- 20 ; f() }", "1.0");
     }
+
+    @Test
+    public void testEmptyIndex() throws RecognitionException {
+        assertEval("{ x <- 1:2 ; x[] }", "1L, 2L");
+        assertEvalError("{ x <- 1:2 ; x[[]] }", "invalid subscript type 'symbol'");
+    }
 }

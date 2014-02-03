@@ -669,6 +669,15 @@ public class BuildExecutableTree implements Visitor {
             result = new ReadArray.GenericRead(a, a.isSubset(), createTree(a.getVector()), selNodes, Selector.createDropOptionNode(a, drop), Selector.createExactOptionNode(a, exact));
             return;
         }
+        if (sa.convertedExpressions.length == 0) {
+            if (a.isSubset()) {
+                result = createTree(a.getVector());
+                return;
+            } else {
+                throw RError.getInvalidSubscriptType(a, "symbol");
+            }
+
+        }
         Utils.nyi("unsupported indexing style");
     }
 
