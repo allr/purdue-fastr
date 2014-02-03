@@ -683,7 +683,26 @@ public abstract class FunctionCall extends AbstractCall {
                         j++;
                     }
                 }
-                return builtIn.callFactory().invokeDynamic(callerFrame, actualArgNames, actualArgExprs, ast);
+                Object res = builtIn.callFactory().invokeDynamic(callerFrame, actualArgNames, actualArgExprs, ast);
+
+                // at this point we have to recover the argExprs that may have been taken and changed by the builtin call
+                // TODO: fix this, it is so awkward
+                // we could indeed support and do deep copying of executable nodes, but that would complicate the semantics in tree rewriting
+
+                nextDots = dotsArgs[0];
+                for (int i = 0, j = 0; j < nArgs; i++) {
+                    if (i == nextDots) {
+                        j += dotsArgLen;
+                        dotsIndex++;
+                        if (dotsIndex < ndots) {
+                            nextDots = dotsIndex;
+                        }
+                    } else {
+                        argExprs[i] = adoptChild(actualArgExprs[j]);
+                        j++;
+                    }
+                }
+                return res;
             }
         }
     }

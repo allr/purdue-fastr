@@ -1305,6 +1305,8 @@ public class TestSimpleBuiltins extends SimpleTestBase {
         assertEval("{ f <- function(a, ...) { list(...) } ; f(1) }", "list()");
         assertEval("{ f <- function(...) { args <- list(...) ; args$name } ; f(name = 42) }", "42.0");
         assertEval("{ p <- function(prefix, ...) { cat(prefix, ..., \"\n\") } ; p(\"INFO\", \"msg:\", \"Hello\", 42) }", "INFO msg: Hello 42.0 \n", "NULL");
+
+        assertEval("{ print <- function(...) { cat(..., '\n') } ; print('hi') ; print('hello') }", "hi \nhello \n", "NULL");
     }
 
     @Test
