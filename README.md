@@ -5,6 +5,9 @@ FastR can run the [R implementation](http://r.cs.purdue.edu/hg/r-shootout/)
 of the [Language Shootout Benchmarks](http://shootout.alioth.debian.org/) and 
 the [Benchmark 25 suite](http://r.research.att.com/benchmarks/).
 
+This version of FastR has been published at [VEE'15](http://dl.acm.org/citation.cfm?id=2576205): 
+"A fast abstract syntax tree interpreter for R". The project now continues [here](https://bitbucket.org/allr/fastr).
+
 ## Quick Start
 
 1. download the [latest code](https://github.com/allr/fastr/archive/master.zip): `wget https://github.com/allr/fastr/archive/master.zip`
@@ -61,4 +64,4 @@ The code contains settings and project configuration for Eclipse Juno.
 
 # Authors:
 
-Tomas Kalibera, Petr Maj and Jan Vitek
+Tomas Kalibera, Petr Maj, Floreal Morandat and Jan Vitek
